@@ -2,7 +2,8 @@
 name = "botato"
 version = "0.1.0"
 authors = ["Juan Potato"]
+build = "build.rs"
 
 [dependencies]
 tg_botapi = "0.1.2"
-rustyline = "1.0.0"
+mysql = "9.0.1"
