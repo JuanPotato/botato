@@ -1,9 +1,10 @@
 [package]
-name = "botato"
-version = "0.1.0"
 authors = ["Juan Potato"]
 build = "build.rs"
+name = "botato"
+version = "0.1.0"
 
 [dependencies]
-tg_botapi = "0.1.2"
-mysql = "9.0.1"
+mysql = "10.0.0"
+rustyline = "1.0.0"
+tg_botapi = "0.2.0"
