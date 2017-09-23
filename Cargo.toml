@@ -5,6 +5,7 @@ name = "botato"
 version = "0.1.0"
 
 [dependencies]
-mysql = "10.0.0"
-rustyline = "1.0.0"
-tg_botapi = "0.2.0"
+rusqlite = "0.9"
+tg_botapi = "0.4.1"
+regex = "0.2"
+time = "0.1"
