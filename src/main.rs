@@ -10,7 +10,11 @@ use tg_botapi::BotApi;
 use std::sync::Arc;
 use std::thread;
 
-mod sed;
+#[macro_use]
+mod utils;
+
+mod plugins;
+
 
 // User
 // id
@@ -23,6 +27,7 @@ mod sed;
 //         # each plugin has a permenant id index
 //         # but is just sorted alphabetically when shown.
 //         # Has no effect when mode is not 0
+
 
 const ADMIN_ID: i64 = 0;
 
@@ -96,26 +101,33 @@ fn parse_update(bot: Arc<BotApi>, update: types::Update) {
 fn parse_message(bot: Arc<BotApi>, msg: types::Message) {
     // Increment message / hour counter
     // increment command / hour counter if start / or s/
-    // I want to have a generated match statement
-
-    let text = msg.text.clone().unwrap(); // if no clone then msg is partially moved :\ 
-
+    
     // no need to try and check the message if it isnt sed not a command
-    let index = text.find("/").unwrap_or(3);
+    let index = ref_or_return!(msg.text).find("/").unwrap_or(3);
 
     match index {
         0 => {
-            parse_command(bot, msg, text);
+            parse_command(bot, msg);
         }
 
         1 => {
-            sed::parse_sed(bot, msg, text);
+            plugins::parse_sed(bot, msg);
         }
 
         _ => { }
     }
 }
 
-fn parse_command(bot: Arc<BotApi>, msg: types::Message, text: String) {
+fn parse_command(bot: Arc<BotApi>, msg: types::Message) {
+    let text = msg.text.clone().unwrap();
+    let parts = text.split(" ").collect::<Vec<&str>>();
 
+    match parts[0] {
+        "/start" => plugins::start(bot, msg),
+        // "/about" => plugins::about();
+        // "/help" => plugins::help();
+        // "/whoami" | "/who" | "/me" => plugins::whoami();
+
+        _ => {}
+    }
 }

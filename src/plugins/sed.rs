@@ -6,8 +6,7 @@ use regex::Regex;
 
 use std::sync::Arc;
 
-
-pub fn parse_sed(bot: Arc<BotApi>, msg: types::Message, msg_text: String) {
+pub fn parse_sed(bot: Arc<BotApi>, msg: types::Message) {
     if msg.reply_to_message.is_none() {
         return;
     }
@@ -28,7 +27,8 @@ pub fn parse_sed(bot: Arc<BotApi>, msg: types::Message, msg_text: String) {
     }
 
     let reply_msg_id = reply_msg.message_id;
-    let reply_msg_text = reply_msg.text.unwrap();
+    let reply_msg_text = ref_or_return!(reply_msg.text);
+    let msg_text = ref_or_return!(msg.text);
 
     if msg_text.starts_with("s/") || msg_text.starts_with("/s/") {
         let boundaries = get_boundaries(&msg_text);
