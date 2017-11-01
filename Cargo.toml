@@ -9,3 +9,5 @@ rusqlite = "0.12"
 tg_botapi = "0.4.1"
 regex = "0.2"
 time = "0.1"
+config = "0.7.0"
+

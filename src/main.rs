@@ -2,6 +2,7 @@ extern crate tg_botapi;
 extern crate rusqlite;
 extern crate time;
 extern crate regex;
+extern crate config;
 
 use tg_botapi::args;
 use tg_botapi::types;
@@ -203,11 +204,28 @@ impl Database {
 }
 
 fn main() {
-    // Config file, should make it later, important stuff now
-    // let token = env::var("TOKEN").unwrap();
-    let token = "";
+    let mut settings = config::Config::default();
 
-    // let bot_arc = Arc::new(BotApi::new_debug(&token));
+    settings
+        .merge(config::File::with_name("config.json")).unwrap()
+        .merge(config::Environment::with_prefix("BOT")).unwrap();
+
+    let token = match settings.get_str("token") {
+        Ok(token) => {
+            if token == "" {
+                eprintln!("Token in config.json is empty");
+                std::process::exit(1);
+            } else {
+                token
+            }
+        }
+
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
+
     let bot_api = BotApi::new_debug(&token);
 
     let me_irl = bot_api.get_me().expect("Could not establish a connection :\\");
