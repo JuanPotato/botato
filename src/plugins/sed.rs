@@ -1,94 +1,106 @@
 use tg_botapi::args;
 use tg_botapi::types;
-use tg_botapi::BotApi;
 
 use regex::Regex;
 
 use std::sync::Arc;
 
-pub fn parse_sed(bot: Arc<BotApi>, msg: types::Message) {
-    if msg.reply_to_message.is_none() {
-        return;
-    }
+use plugins::Plugin;
 
-    let mut reply_msg = msg.reply_to_message.unwrap();
+use Botato;
+
+#[derive(Debug)]
+pub struct Sed;
+
+impl Plugin for Sed {
+    const ID: i64 = 1;
+
+    fn parse(bot: &Arc<Botato>, msg: types::Message) -> Result<Option<String>, String> {
+        if msg.reply_to_message.is_none() {
+            return Ok(None);
+        }
+
+        let mut reply_msg = msg.reply_to_message.unwrap();
 
 
-    if reply_msg.caption.is_some() {
-        reply_msg.text = reply_msg.caption.clone();
-    }
+        if reply_msg.caption.is_some() {
+            reply_msg.text = reply_msg.caption.clone();
+        }
 
-    if reply_msg.text.is_none() {
-        return;
-    }
+        if reply_msg.text.is_none() {
+            return Ok(None);
+        }
 
-    if msg.from.is_none() {
-        return;
-    }
+        if msg.from.is_none() {
+            return Ok(None);
+        }
 
-    let reply_msg_id = reply_msg.message_id;
-    let reply_msg_text = ref_or_return!(reply_msg.text);
-    let msg_text = ref_or_return!(msg.text);
+        let reply_msg_id = reply_msg.message_id;
+        let reply_msg_text = ref_or_return_oknone!(reply_msg.text);
+        let msg_text = ref_or_return_oknone!(msg.text);
 
-    if msg_text.starts_with("s/") || msg_text.starts_with("/s/") {
-        let boundaries = get_boundaries(&msg_text);
-        let len = boundaries.len();
+        if msg_text.starts_with("s/") || msg_text.starts_with("/s/") {
+            let boundaries = get_boundaries(&msg_text);
+            let len = boundaries.len();
 
-        match len {
-            2 | 3 => {
-                let pattern = &msg_text[boundaries[0] + 1 .. boundaries[1]].replace("\\/", "/");
+            match len {
+                2 | 3 => {
+                    let pattern = &msg_text[boundaries[0] + 1 .. boundaries[1]].replace("\\/", "/");
 
-                let to = if len == 3 {
-                    msg_text[boundaries[1] + 1 .. boundaries[2]].to_string().replace("\\/", "/")
-                } else {
-                    String::new()
-                };
+                    let to = if len == 3 {
+                        msg_text[boundaries[1] + 1 .. boundaries[2]].to_string().replace("\\/", "/")
+                    } else {
+                        String::new()
+                    };
 
-                let re = Regex::new(pattern);
+                    let re = Regex::new(pattern);
 
-                match re {
-                    Ok(result) => {
-                        let after = result.replace_all(&reply_msg_text, to.as_str());
+                    match re {
+                        Ok(result) => {
+                            let after = result.replace_all(&reply_msg_text, to.as_str());
 
-                        let new_msg = if after == "" {
-                            args::SendMessageBuilder::default()
-                                .text("`java.lang.NullPointerException: Empty Message`")
+                            let new_msg = if after == "" {
+                                args::SendMessageBuilder::default()
+                                    .text("`java.lang.NullPointerException: Empty Message`")
+                                    .chat_id(msg.chat.id)
+                                    .reply_to_message_id(reply_msg_id)
+                                    .parse_mode(String::from("Markdown"))
+                                    .build().unwrap()
+                            } else {
+                                args::SendMessageBuilder::default()
+                                    .text(after.into_owned())
+                                    .chat_id(msg.chat.id)
+                                    .reply_to_message_id(reply_msg_id)
+                                    .build().unwrap()
+                            };
+
+                            let _ = bot.api.send_message(&new_msg);
+                        }
+
+                        Err(err) => {
+                            let new_msg = args::SendMessageBuilder::default()
+                                .text(err.to_string())
                                 .chat_id(msg.chat.id)
-                                .reply_to_message_id(reply_msg_id)
-                                .parse_mode(String::from("Markdown"))
-                                .build().unwrap()
-                        } else {
-                            args::SendMessageBuilder::default()
-                                .text(after.into_owned())
-                                .chat_id(msg.chat.id)
-                                .reply_to_message_id(reply_msg_id)
-                                .build().unwrap()
-                        };
+                                .reply_to_message_id(msg.message_id)
+                                .build().unwrap();
 
-                        let _ = bot.send_message(&new_msg);
-                    }
-
-                    Err(err) => {
-                        let new_msg = args::SendMessageBuilder::default()
-                            .text(err.to_string())
-                            .chat_id(msg.chat.id)
-                            .reply_to_message_id(msg.message_id)
-                            .build().unwrap();
-
-                        let _ = bot.send_message(&new_msg);
+                            let _ = bot.api.send_message(&new_msg);
+                        }
                     }
                 }
-            }
-            _ => {
-                let new_msg = args::SendMessageBuilder::default()
-                    .text("Invalid number of delimiters!")
-                    .chat_id(msg.chat.id)
-                    .reply_to_message_id(msg.message_id)
-                    .build().unwrap();
+                _ => {
+                    let new_msg = args::SendMessageBuilder::default()
+                        .text("Invalid number of delimiters!")
+                        .chat_id(msg.chat.id)
+                        .reply_to_message_id(msg.message_id)
+                        .build().unwrap();
 
-                let _ = bot.send_message(&new_msg);
+                    let _ = bot.api.send_message(&new_msg);
+                }
             }
         }
+
+        Ok(None)
     }
 }
 

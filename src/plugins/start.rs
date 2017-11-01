@@ -1,17 +1,14 @@
-use tg_botapi::args;
 use tg_botapi::types;
-use tg_botapi::BotApi;
-
-use regex::Regex;
-
 use std::sync::Arc;
+use Botato;
+use Plugin;
 
-pub fn start(bot: Arc<BotApi>, msg: types::Message) {
-    let new_msg = args::SendMessageBuilder::default()
-        .text("You are now running Botat OS v0.0")
-        .chat_id(msg.chat.id)
-        .reply_to_message_id(msg.message_id)
-        .build().unwrap();
+#[derive(Debug)]
+pub struct Start;
 
-    let _ = bot.send_message(&new_msg);
+impl Plugin for Start {
+    const ID: i64 = 2;
+    fn parse(_bot: &Arc<Botato>, _msg: types::Message) -> Result<Option<String>, String> {
+        Ok(Some(String::from("You are now running Botat OS v0.0")))
+    }
 }
