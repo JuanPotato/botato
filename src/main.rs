@@ -34,7 +34,7 @@ mod plugins;
 //         # Has no effect when mode is not 0
 
 
-const ADMIN_ID: i64 = 82725741;
+const ADMIN_ID: i64 = 0;
 
 #[derive(Debug)]
 pub struct Database {
@@ -205,7 +205,7 @@ impl Database {
 fn main() {
     // Config file, should make it later, important stuff now
     // let token = env::var("TOKEN").unwrap();
-    let token = "104108634:AAERlM8donHhbqmOimwA3-4GvDpMFwa7LE8";
+    let token = "";
 
     // let bot_arc = Arc::new(BotApi::new_debug(&token));
     let bot_api = BotApi::new_debug(&token);
